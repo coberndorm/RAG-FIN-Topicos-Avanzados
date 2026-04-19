@@ -1,0 +1,41 @@
+flowchart LR
+    subgraph FASE1["Fase 1: Descubrimiento"]
+        A["🧑‍🌾 Productor\nabre módulo FIN"]
+    end
+
+    subgraph FASE2["Fase 2: Formulación de Consulta"]
+        B["Escribe pregunta\nen lenguaje\nnatural"]
+    end
+
+    subgraph FASE3["Fase 3: Procesamiento"]
+        C["🤖 Agente ReAct\nrazona sobre\nqué herramientas\ninvocar"]
+        D["⚙️ Ejecución de\nHerramientas"]
+        D1["🔍 Búsqueda KB"]
+        D2["💰 Consulta FIN"]
+        D3["🧮 Cálculos"]
+        C --> D
+        D --> D1
+        D --> D2
+        D --> D3
+    end
+
+    subgraph FASE4["Fase 4: Generación LLM"]
+        E["🧠 Sintetiza contexto\nlegal + financiero\nen recomendación\npersonalizada"]
+    end
+
+    subgraph FASE5["Fase 5: Entrega de Respuesta"]
+        F["📋 Recomendación\nestructurada\ncon referencias\ny datos"]
+    end
+
+    subgraph FASE6["Fase 6: Seguimiento"]
+        G["🔄 Productor\nhace más\npreguntas\no inicia\nnuevo tema"]
+    end
+
+    A --> B
+    B --> C
+    D1 --> E
+    D2 --> E
+    D3 --> E
+    E --> F
+    F --> G
+    G -.->|Nueva consulta| B

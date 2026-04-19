@@ -76,8 +76,8 @@ The knowledge base is the foundation of the RAG pipeline. It contains all the ex
 | Parameter | Value | Justification |
 |---|---|---|
 | Method | `RecursiveCharacterTextSplitter` | Respects document hierarchy (articles → paragraphs) |
-| Chunk Size | 500-1000 tokens | Large enough to preserve legal article context, small enough for precise retrieval |
-| Overlap | 10% (~50-100 tokens) | Prevents losing context at chunk boundaries, especially important for multi-paragraph articles |
+| Chunk Size | 500-1000 characters | Large enough to preserve legal article context, small enough for precise retrieval |
+| Overlap | 10% (~50-100 characters) | Prevents losing context at chunk boundaries, especially important for multi-paragraph articles |
 | Separators | `["\n## ", "\n### ", "\n\n", "\n", " "]` | Prioritizes splitting at heading boundaries, then paragraphs, then sentences |
 
 **Special considerations for legal text:**
@@ -95,7 +95,6 @@ Every chunk stored in ChromaDB must include the following metadata:
 {
   "source_document": "estatuto_tributario_2024.md",
   "article_number": "258-1",
-  "book": "Libro III - IVA",
   "topic_tags": ["IVA", "bienes_de_capital", "maquinaria"],
   "document_type": "legal",
   "date_ingested": "2024-XX-XX",
@@ -108,7 +107,6 @@ Every chunk stored in ChromaDB must include the following metadata:
 |---|---|---|---|
 | source_document | string | Yes | Original file name |
 | article_number | string | No | Applicable for legal documents only |
-| book | string | No | Book/section of the Estatuto Tributario |
 | topic_tags | list[string] | Yes | Searchable tags for filtering (e.g., #IVA, #Maquinaria, #Exenciones) |
 | document_type | string | Yes | One of: `legal`, `guide`, `exchange_rate` |
 | date_ingested | string | Yes | Date the document was processed into the vector store |

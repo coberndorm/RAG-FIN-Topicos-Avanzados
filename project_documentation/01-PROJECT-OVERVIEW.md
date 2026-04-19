@@ -18,7 +18,7 @@ A RAG-based (Retrieval-Augmented Generation) AI assistant embedded in the EverGr
 
 - Retrieves relevant tax law fragments from a vectorized knowledge base
 - Queries the user's real-time financial data from EverGreen's database
-- Reasons over both data sources using a local LLM to produce personalized, grounded financial advice
+- Reasons over both data sources using a configurable LLM (via API-based providers: Gemini, HuggingFace, OpenAI, or Groq) to produce personalized, grounded financial advice
 - Performs precise calculations when projections or tax computations are needed
 
 ## Value Proposition
@@ -28,8 +28,8 @@ FIN-Advisor transforms the Finance module from a passive record-keeping system i
 
 | Constraint | Detail |
 |---|---|
-| Budget | $0 USD — university project, all tools must be free or open-source |
-| Deployment | Fully local — no cloud services, no paid API keys |
+| Budget | $0 USD — university project, all tools must be free or open-source. Free-tier cloud APIs (e.g., Gemini, Groq) are acceptable |
+| Deployment | Local development with external LLM API calls — free-tier cloud APIs are used for inference, all other components run locally |
 | Data | Mix of public legal documents and synthetic/mock financial data |
 | Timeline | Academic semester scope |
 | Team | University students (first mock project) |

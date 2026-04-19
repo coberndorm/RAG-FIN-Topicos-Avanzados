@@ -8,7 +8,7 @@
 |---|---|
 | Type | ReAct (Reasoning and Acting) |
 | Framework | LangChain `create_react_agent` |
-| LLM Backend | Ollama (Llama 3 8B) |
+| LLM Backend | API-based: Gemini (recommended), HuggingFace, OpenAI, Groq — configurable via env vars |
 | Max Iterations | 5 (prevents infinite loops — note: with 7 tools, complex queries may use 4-5 iterations) |
 | Tools Available | 7 (get_tax_knowledge, query_evergreen_finances, calculate_vat_discount, calculate_net_liquidity, assess_investment_viability, project_tax_liability, calculate_depreciation) |
 

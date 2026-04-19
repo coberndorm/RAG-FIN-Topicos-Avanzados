@@ -4,7 +4,7 @@
 
 ## Architecture Overview
 
-FIN-Advisor follows a **layered architecture** with four distinct layers, each with a single responsibility. All components run locally — no cloud dependencies.
+FIN-Advisor follows a **layered architecture** with four distinct layers, each with a single responsibility. Components run locally except for LLM inference, which uses external API-based providers (free-tier cloud APIs).
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -14,8 +14,8 @@ FIN-Advisor follows a **layered architecture** with four distinct layers, each w
 │   │                    React.js Frontend                            │   │
 │   │                                                                 │   │
 │   │   ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐   │   │
-│   │   │  Chat UI     │  │  FIN         │  │  Response          │   │   │
-│   │   │  Component   │  │  Dashboard   │  │  Renderer          │   │   │
+│   │   │  Chat UI     │  │  Suggestion  │  │  Response          │   │   │
+│   │   │  Component   │  │  Chips       │  │  Renderer          │   │   │
 │   │   └──────────────┘  └──────────────┘  └────────────────────┘   │   │
 │   └─────────────────────────────────────────────────────────────────┘   │
 │                                    │                                     │
@@ -65,10 +65,10 @@ FIN-Advisor follows a **layered architecture** with four distinct layers, each w
 │                        INFERENCE LAYER                                │
 │                                                                       │
 │   ┌───────────────────────────────────────────────────────────────┐   │
-│   │                    Ollama (Local LLM)                          │   │
+│   │              API-Based LLM Providers (External)                │   │
 │   │                                                               │   │
-│   │   Model: Llama 3 (8B) or Mistral (7B)                        │   │
-│   │   API: http://localhost:11434                                 │   │
+│   │   Gemini (recommended) / HuggingFace / OpenAI / Groq         │   │
+│   │   Configured via: LLM_PROVIDER, LLM_API_KEY, LLM_MODEL_NAME  │   │
 │   │   Role: Receives enriched prompt, generates final response    │   │
 │   └───────────────────────────────────────────────────────────────┘   │
 │                                                                       │
@@ -84,10 +84,13 @@ FIN-Advisor follows a **layered architecture** with four distinct layers, each w
 | Component | Technology | Responsibility |
 |---|---|---|
 | Chat UI | React.js | Renders the conversational interface where the user types queries and receives responses |
-| FIN Dashboard | React.js | Displays the existing EverGreen FIN module views (invoices, movements, etc.) |
+| Suggestion Chips | React.js | Displays clickable example queries to help the user get started |
 | Response Renderer | React.js | Formats the agent's structured responses (tables, warnings, calendars) into readable UI components |
+| Logo | React.js | FIN-Advisor logo in top-right; renders placeholder if no logo file exists |
 
-**Communication:** The frontend communicates with the backend via REST API calls. For MVP, standard HTTP request/response is sufficient. Streaming (SSE) can be added in Phase 2 for a better UX during long responses.
+**Note:** A FIN Dashboard component (displaying EverGreen FIN module views) is deferred to Phase 2. See [PHASE-2-BACKLOG.md](./PHASE-2-BACKLOG.md).
+
+**Communication:** The frontend communicates with the backend via REST API calls. For MVP, standard HTTP request/response is used. Streaming (SSE) is planned for Phase 2 for a better UX during long responses.
 
 **Key endpoint:**
 ```
@@ -138,7 +141,7 @@ Response: { "response": "string", "sources": [...], "tools_used": [...] }
 | Attribute | Detail |
 |---|---|
 | Technology | ChromaDB (persistent local mode) |
-| Embedding Model | `all-MiniLM-L6-v2` via sentence-transformers (runs locally) |
+| Embedding Model | `intfloat/multilingual-e5-small` via sentence-transformers (runs locally, optimized for Spanish/legal text) |
 | Collections | `tax_laws`, `sector_guides` |
 | Index Type | HNSW (default in ChromaDB) |
 
@@ -167,20 +170,22 @@ Response: { "response": "string", "sources": [...], "tools_used": [...] }
 
 ---
 
-### Inference Layer (Ollama)
+### Inference Layer (API-Based LLM Providers)
 
 | Attribute | Detail |
 |---|---|
-| Technology | Ollama |
-| Model Options | Llama 3 (8B) — primary; Mistral (7B) — fallback |
-| API | REST at `http://localhost:11434` |
-| Hardware Requirement | Minimum 8GB RAM, recommended 16GB. GPU optional but improves speed |
+| Technology | API-based: Gemini (recommended), HuggingFace, OpenAI, Groq |
+| Primary Model | `gemini-1.5-flash` (free tier: 1,500 req/day) |
+| Alternatives | `Llama-3.1-70B-Instruct` (HuggingFace), `gpt-4o-mini` (OpenAI), `llama-3.1-70b-versatile` (Groq) |
+| API | Provider-specific REST APIs, abstracted via LangChain + Strategy pattern |
+| Configuration | `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL_NAME` environment variables |
 
-**Why Ollama + Llama 3?**
-- Completely free and local — no API keys, no usage limits
-- Llama 3 8B offers strong reasoning for its size
-- Ollama provides a simple REST API that LangChain supports natively
-- Can be swapped for Mistral if hardware is limited
+**Why API-based over Ollama + Llama 3?**
+- No local GPU or 16GB RAM requirement
+- Gemini free tier is more than enough for development and demo
+- Better Spanish quality from larger models (70B+ parameters)
+- Strategy pattern allows switching providers via a single env var
+- Faster response times (especially Groq at ≤400ms)
 
 ---
 
@@ -225,8 +230,8 @@ Response: { "response": "string", "sources": [...], "tools_used": [...] }
                          │ 6. Agent synthesizes context
                          ▼
                     ┌──────────┐
-                    │  Ollama  │
-                    │  (LLM)   │
+                    │  LLM API │
+                    │ Provider │
                     └────┬─────┘
                          │ 7. Generated response
                          ▼
@@ -252,9 +257,9 @@ Response: { "response": "string", "sources": [...], "tools_used": [...] }
 | Backend | FastAPI | Flask, Django | Native async support, automatic OpenAPI docs, best Python framework for AI/ML serving |
 | Agent Framework | LangChain | LlamaIndex, Smolagents | Most mature ecosystem for ReAct agents with tool calling. Extensive documentation and community |
 | Vector DB | ChromaDB | Pinecone, Weaviate, FAISS | Free, local, Python-native, persistent mode. Pinecone/Weaviate require cloud. FAISS lacks metadata filtering |
-| LLM | Ollama (Llama 3 8B) | GPT-4 (API), Hugging Face | $0 cost, fully local, no API keys. GPT-4 is superior but costs money and requires internet |
+| LLM | API-based (Gemini recommended) | Ollama (local), Hugging Face (local) | Gemini free tier (1,500 req/day) is sufficient for university project. Better Spanish quality from larger models. Strategy pattern allows switching providers |
 | Relational DB | SQLite | PostgreSQL, MySQL | Zero configuration, file-based, perfect for mock data. Can upgrade to Postgres if needed |
-| Embeddings | sentence-transformers (all-MiniLM-L6-v2) | OpenAI embeddings, Cohere | Free, local, fast. Quality is sufficient for the document types in scope |
+| Embeddings | sentence-transformers (intfloat/multilingual-e5-small) | OpenAI embeddings, Cohere | Free, local, fast. Optimized for Spanish/legal text. Quality is sufficient for the document types in scope |
 
 ---
 
@@ -265,7 +270,7 @@ Response: { "response": "string", "sources": [...], "tools_used": [...] }
 | Response Time | < 30 seconds (simple queries), < 45 seconds (multi-tool queries) | Depends on hardware. GPU significantly reduces LLM inference time |
 | Availability | Local only — available when the machine is running | No SLA required for university project |
 | Concurrency | Single user | MVP does not need to handle multiple simultaneous users |
-| Data Privacy | All data stays local | No data leaves the machine. No external API calls |
+| Data Privacy | Financial data stays local; queries sent to external LLM APIs | User queries and context are sent to the configured LLM provider (Gemini, HuggingFace, OpenAI, or Groq). Financial database and knowledge base remain local. No financial records are stored externally |
 | Scalability | Not required for MVP | Architecture supports horizontal scaling if needed later |
 | Security | Basic — no authentication for MVP | In production, would add JWT auth and role-based access |
 
@@ -277,17 +282,19 @@ Response: { "response": "string", "sources": [...], "tools_used": [...] }
 ┌─────────────────────────────────────────────────┐
 │              Developer's Machine                 │
 │                                                  │
-│  ┌────────────┐  ┌────────────┐  ┌───────────┐  │
-│  │ React Dev  │  │ FastAPI    │  │ Ollama    │  │
-│  │ Server     │  │ Server     │  │ Server    │  │
-│  │ :3000      │  │ :8000      │  │ :11434    │  │
-│  └────────────┘  └────────────┘  └───────────┘  │
+│  ┌────────────┐  ┌────────────┐                  │
+│  │ React Dev  │  │ FastAPI    │                  │
+│  │ Server     │  │ Server     │                  │
+│  │ :3000      │  │ :8000      │                  │
+│  └────────────┘  └────────────┘                  │
 │                                                  │
 │  ┌────────────┐  ┌────────────┐                  │
 │  │ ChromaDB   │  │ SQLite     │                  │
-│  │ (persist)  │  │ (file)     │                  │
-│  │ :8001      │  │ fin.db     │                  │
+│  │ (embedded) │  │ (file)     │                  │
+│  │            │  │ fin.db     │                  │
 │  └────────────┘  └────────────┘                  │
+│                                                  │
+│  External: LLM API Provider (Gemini/HF/OpenAI/Groq)
 │                                                  │
 └─────────────────────────────────────────────────┘
 ```

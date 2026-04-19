@@ -156,7 +156,7 @@ Key discussion points:
 - [ ] If the user has related data in EverGreen, a concrete example from their data is included
 - [ ] If no user data is relevant, a generic agricultural example is provided
 - [ ] The response is concise (under 200 words for simple concepts)
-- [ ] Response time is under 15 seconds
+- [ ] Response time is under 30 seconds
 
 ---
 

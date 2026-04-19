@@ -19,6 +19,7 @@
 | 08 | [Agent & Tools](./08-AGENT-AND-TOOLS.md) | ReAct agent definition, system prompt, 3 tool specifications, interaction patterns, and error handling |
 | 09 | [Data Requirements](./09-DATA-REQUIREMENTS.md) | Document inventory, mock data table schemas, sample data, generation plan, and task ownership |
 | 10 | [Risks & Constraints](./10-PROJECT-RISKS-AND-CONSTRAINTS.md) | 6 constraints, 8 risks with mitigations, 7 assumptions, and Definition of Done |
+| -- | [Phase 2 Backlog](./PHASE-2-BACKLOG.md) | Deferred features: SSE streaming, FIN Dashboard, multi-user support, exchange rates |
 
 ---
 
@@ -30,6 +31,6 @@
 
 **What does it cost?** $0 — fully open-source, fully local.
 
-**Core tech:** React + FastAPI + LangChain + Ollama (Llama 3) + ChromaDB + SQLite
+**Core tech:** React + FastAPI + LangChain + API-based LLM (Gemini/HuggingFace/OpenAI/Groq) + ChromaDB + SQLite
 
 **How many user stories?** 6 stories covering tax inquiries, cash flow diagnosis, investment viability, tax calendars, concept explanations, and expense optimization.

@@ -9,10 +9,10 @@
 | Frontend | React.js | 18.x | MIT | Free |
 | Backend | FastAPI | 0.100+ | MIT | Free |
 | Agent Framework | LangChain | 0.2+ | MIT | Free |
-| Local LLM Runtime | Ollama | Latest | MIT | Free |
-| LLM Model | Llama 3 (8B) | 8B-instruct | Llama 3 License | Free |
+| Local LLM Runtime | API-based (Gemini/HuggingFace/OpenAI/Groq) | Latest | Various | Free tiers available |
+| LLM Model | gemini-1.5-flash (recommended) | Latest | Google ToS | Free tier: 1,500 req/day |
 | Vector Database | ChromaDB | 0.4+ | Apache 2.0 | Free |
-| Embedding Model | all-MiniLM-L6-v2 | - | Apache 2.0 | Free |
+| Embedding Model | intfloat/multilingual-e5-small | - | Apache 2.0 | Free |
 | Relational Database | SQLite | 3.x | Public Domain | Free |
 | Language | Python | 3.11+ | PSF | Free |
 | Package Manager (Python) | pip / uv | Latest | - | Free |
@@ -26,7 +26,7 @@
 
 ### Frontend: React.js
 
-**Purpose:** Render the chat interface and FIN dashboard.
+**Purpose:** Render the chat interface.
 
 **Key libraries:**
 - `react` — Core UI framework
@@ -70,41 +70,45 @@
 **Key modules:**
 - `langchain.agents` — ReAct agent implementation
 - `langchain.tools` — Tool definition and registration
-- `langchain_community.llms` — Ollama LLM integration
+- `langchain_community.llms` — LLM provider integrations
 - `langchain_community.vectorstores` — ChromaDB integration
 - `langchain.text_splitter` — Document chunking (for ETL)
 
 **Why LangChain over alternatives:**
 - Most mature agent framework with extensive tool-calling support
-- Native integration with both Ollama and ChromaDB
+- Native integration with ChromaDB and all supported LLM providers
 - Large community, well-documented
 - LlamaIndex is more retrieval-focused; LangChain is better for agent orchestration
 
 ---
 
-### LLM: Ollama + Llama 3 (8B)
+### LLM: API-Based Providers (Configurable)
 
 **Purpose:** Generate natural language responses based on enriched context.
 
-**Configuration:**
-- Runtime: Ollama (manages model download, serving, and API)
-- Model: `llama3:8b-instruct` (instruction-tuned variant)
-- Fallback: `mistral:7b-instruct` (lighter, for machines with less RAM)
-- API endpoint: `http://localhost:11434/api/generate`
-- Context window: 8,192 tokens (Llama 3 8B)
+**Configuration:** Switchable via environment variables (`LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL_NAME`). Strategy pattern enables provider switching without code changes.
 
-**Hardware requirements:**
-| Resource | Minimum | Recommended |
-|---|---|---|
-| RAM | 8 GB | 16 GB |
-| GPU | Not required | NVIDIA with 6GB+ VRAM (dramatically faster) |
-| Disk | 5 GB (for model weights) | 10 GB |
+**Provider Options:**
 
-**Why Ollama over alternatives:**
-- One-command model download and serving (`ollama pull llama3`)
-- REST API compatible with LangChain out of the box
-- No Python dependency conflicts (runs as a separate process)
-- Supports model switching without code changes
+| Provider | Model | Free Tier | Paid Cost (per 1M tokens) | Spanish Quality | Context Window |
+|---|---|---|---|---|---|
+| **Gemini (recommended)** | `gemini-1.5-flash` | 1,500 req/day | $0.35 input / $1.05 output | Excellent | 1M tokens |
+| **HuggingFace** | `Llama-3.1-70B-Instruct` | Rate-limited | Pay-as-you-go | Good | 8K tokens |
+| **OpenAI** | `gpt-4o-mini` | $5-18 student credit | $0.15 input / $0.60 output | Best-in-class | 128K tokens |
+| **Groq** | `llama-3.1-70b-versatile` | ~14,000 req/day | Very affordable | Good | 128K tokens |
+
+**LangChain packages required (install only the one you use):**
+- Gemini: `langchain-google-genai`
+- HuggingFace: `langchain-huggingface`
+- OpenAI: `langchain-openai`
+- Groq: `langchain-groq`
+
+**Why API-based over local Ollama:**
+- No local GPU or 16GB RAM requirement
+- Gemini free tier (1,500 req/day) is more than enough for development and demo
+- Better Spanish quality from larger models (70B+ parameters)
+- Faster response times (especially Groq at ≤400ms)
+- Strategy pattern allows switching providers via a single env var
 
 ---
 
@@ -127,20 +131,25 @@
 
 ---
 
-### Embedding Model: all-MiniLM-L6-v2
+### Embedding Model: intfloat/multilingual-e5-small
 
 **Purpose:** Convert text chunks and queries into vector representations for semantic search.
 
 **Details:**
 - Library: `sentence-transformers`
-- Model size: ~80 MB
+- Model: `intfloat/multilingual-e5-small`
+- Model size: ~134 MB
 - Embedding dimension: 384
 - Speed: Fast on CPU (no GPU required)
-- Language: Multilingual (supports Spanish)
+- Language: Multilingual (optimized for Spanish and legal text)
+
+**Alternatives (configurable via `EMBEDDING_MODEL_NAME` env var):**
+- `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (~120MB)
+- `intfloat/multilingual-e5-base` (~440MB, higher quality)
 
 **Why this model:**
+- Better Spanish and legal text support than all-MiniLM-L6-v2
 - Small enough to run on any machine
-- Good quality for document retrieval tasks
 - No API key or internet connection needed after initial download
 - Well-tested with ChromaDB and LangChain
 
@@ -168,18 +177,18 @@ React.js (Frontend)
 FastAPI (Backend)
   ├── uvicorn (server)
   ├── langchain (agent framework)
-  │     ├── langchain_community.llms.ollama (LLM connection)
+  │     ├── langchain_google_genai (Gemini LLM connection)
+  │     ├── langchain_huggingface (HuggingFace LLM connection)
+  │     ├── langchain_openai (OpenAI LLM connection)
+  │     ├── langchain_groq (Groq LLM connection)
   │     ├── langchain_community.vectorstores.chroma (vector search)
   │     ├── langchain.agents (ReAct agent)
   │     └── langchain.tools (tool definitions)
   ├── chromadb (vector store)
   ├── sentence-transformers (embeddings)
-  │     └── all-MiniLM-L6-v2 (model)
+  │     └── intfloat/multilingual-e5-small (model)
   ├── sqlite3 (built-in, relational data)
   └── pydantic (data validation)
-
-Ollama (External process)
-  └── llama3:8b-instruct (LLM model)
 ```
 
 ---
@@ -192,4 +201,3 @@ Ollama (External process)
 | VS Code / Kiro | IDE |
 | Postman or curl | API testing |
 | DB Browser for SQLite | Inspect mock data |
-| Ollama CLI | Model management (`ollama list`, `ollama pull`) |

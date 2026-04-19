@@ -118,7 +118,7 @@ El esquema de negocio opera a través de un viaje del usuario (Customer Journey)
 
 ### 3.1 Definición de la Base de Conocimiento
 
-La base de conocimiento contiene toda la información externa (no específica del usuario) que el LLM necesita para fundamentar sus respuestas. Cada documento pasa por un pipeline ETL: ingestión → troceado (chunking) → generación de embeddings → almacenamiento en ChromaDB.
+La base de conocimiento contiene toda la información externa (no específica del usuario) que el LLM necesita para fundamentar sus respuestas. Cada documento pasa por un pipeline ETL: ingestión, chunking, generación de embeddings, almacenamiento en Base de Datos Vectorial.
 
 #### KB-01: Estatuto Tributario Nacional
 
@@ -129,13 +129,6 @@ La base de conocimiento contiene toda la información externa (no específica de
 | Formato | PDF → convertido a Markdown para procesamiento |
 | Frecuencia de actualización | Estático para MVP (versión 2024) |
 | Tamaño estimado | ~50-80 páginas de contenido relevante después de filtrar |
-
-**Secciones clave incluidas:**
-- Art. 258-1: Descuento del IVA en bienes de capital (maquinaria, equipo)
-- Art. 23: Entidades exentas de impuestos en el sector agropecuario
-- Art. 57-1: Rentas provenientes de actividades agropecuarias
-- Secciones sobre retención en la fuente para ventas agrícolas
-- Exenciones de IVA en insumos agropecuarios (semillas, fertilizantes)
 
 **Condiciones:**
 - Solo se incluyen artículos directamente aplicables a productores agropecuarios
@@ -151,28 +144,16 @@ La base de conocimiento contiene toda la información externa (no específica de
 | Formato | Archivos Markdown (3-4 documentos) |
 | Tamaño estimado | ~5-10 páginas en total |
 
-**Documentos a crear:**
+**Documentos a crear como información legal de la empresa:**
 1. `beneficios_compra_maquinaria.md` — Beneficios para la compra de maquinaria agrícola
-2. `exenciones_pequeno_productor.md` — Exenciones para pequeños productores (umbrales de ingreso)
+2. `exenciones_pequeno_productor.md` — Exenciones para pequeños productores
 3. `programas_gobierno_agro.md` — Programas gubernamentales y subsidios para el sector
-4. `calendario_tributario_2024.md` — Fechas clave de obligaciones tributarias para entidades agrícolas
 
 **Condiciones:**
 - El contenido debe ser realista y basado en política agrícola colombiana real
 - Cada documento debe tener encabezados de sección claros para un troceado efectivo
 - Los documentos deben estar escritos en español
 - Deben incluir números, porcentajes y condiciones específicas (no declaraciones vagas)
-
-#### KB-03: Tasas de Cambio Históricas (Opcional — Fase 2)
-
-| Atributo | Detalle |
-|---|---|
-| Fuente | Datos sintéticos o datos públicos del Banco de la República |
-| Alcance | Tasas USD/COP de los últimos 12 meses |
-| Formato | CSV o JSON |
-| Prioridad | Baja — incluir solo si el tiempo lo permite |
-
-**Condición:** Solo relevante para consultas que involucren insumos importados. Se almacenaría en la base de datos relacional, no en el vector store.
 
 #### Estrategia de Troceado (Chunking)
 
@@ -188,242 +169,93 @@ La base de conocimiento contiene toda la información externa (no específica de
 - Si un artículo es más corto que el tamaño del trozo, se mantiene como un solo trozo
 - Las listas numeradas dentro de artículos (numerales) deben permanecer juntas cuando sea posible
 
-#### Esquema de Metadatos
-
-Cada trozo almacenado en ChromaDB incluye los siguientes metadatos:
-
-```json
-{
-  "source_document": "estatuto_tributario_2024.md",
-  "article_number": "258-1",
-  "book": "Libro III - IVA",
-  "topic_tags": ["IVA", "bienes_de_capital", "maquinaria"],
-  "document_type": "legal",
-  "date_ingested": "2024-XX-XX",
-  "chunk_index": 3,
-  "total_chunks_in_article": 5
-}
-```
-
-#### Criterios de Calidad de la Base de Conocimiento
-
-1. **Completitud:** Todos los artículos clave del Estatuto Tributario relacionados con tributación agropecuaria están presentes
-2. **Trazabilidad:** Cada respuesta que cite una ley debe ser rastreable hasta un trozo específico con su número de artículo
-3. **Sin duplicación:** El mismo artículo no debe aparecer en múltiples trozos a menos que el solapamiento sea intencional
-4. **Filtrado de relevancia:** Una consulta de prueba como "IVA en tractores" debe retornar trozos del Art. 258-1, no artículos de IVA no relacionados
-5. **Consistencia de idioma:** Todo el contenido de la base de conocimiento está en español
-6. **Integridad de metadatos:** Cada trozo tiene metadatos completos — sin campos requeridos nulos
-
 ---
 
 ### 3.2 Definición de Entradas
 
-Las entradas son las fuentes de datos que alimentan el pipeline RAG en tiempo de consulta. Se dividen en dos categorías: la consulta del usuario (el disparador) y los datos transaccionales (el contexto).
+Las entradas de la funcionalidad FIN-Advisor son los datos dinámicos y operativos que se inyectan en el prompt en el momento de cada consulta. Se clasifican en dos categorías: la consulta explícita del usuario y los datos transaccionales extraídos del módulo FIN de Evergreen.
 
-#### Entrada 1: Consulta del Usuario (Lenguaje Natural)
+#### E1 — Consulta del Usuario (Prompt de entrada)
 
-| Atributo | Detalle |
-|---|---|
-| Fuente | Interfaz de chat en el módulo FIN de EverGreen |
-| Formato | Cadena de texto libre en español |
-| Longitud máxima | 500 caracteres (límite suave, aplicado por el frontend) |
-| Idioma | Español (colombiano) |
-| Requerido | Sí — es el disparador de cada interacción |
+Pregunta o solicitud formulada en lenguaje natural por el productor o administrador financiero a través de la interfaz del sistema. Ejemplo: "¿Cómo puedo reducir el impacto del IVA en mi próxima compra de tractor?". Es el disparador de todo el flujo RAG.
 
-**Condiciones:**
-- El sistema debe manejar lenguaje informal, errores tipográficos y expresiones coloquiales
-- Las consultas fuera del alcance definido deben ser rechazadas con un mensaje útil
-- Las consultas vacías o sin sentido deben solicitar al usuario que reformule
+**Condiciones:** debe estar redactada en español, referirse a situaciones financieras o tributarias del contexto agropecuario, y ser lo suficientemente específica para permitir una recuperación semántica efectiva en la base de datos vectorial. Una consulta ambigua o muy genérica reduce la calidad de los fragmentos recuperados y, en consecuencia, la calidad de la respuesta generada.
 
-#### Entrada 2: Movimientos Contables
+#### E2 — Movimientos Contables del Período
 
-| Atributo | Detalle |
-|---|---|
-| Fuente | Base de datos relacional FIN de EverGreen (mock en SQLite) |
-| Formato | Registros estructurados (filas en tabla) |
-| Acceso | Solo lectura vía herramienta `query_evergreen_finances` |
+Registros de la entidad Movimientos asociados a las CuentasContables del productor, entregados en formato JSON estructurado desde la API del módulo FIN. Deben corresponder al período fiscal vigente o al rango de fechas relevante para la consulta, e incluir fecha, valor, tipo de movimiento y cuenta asociada.
 
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | int | Identificador único del movimiento |
-| date | date | Fecha de la transacción |
-| type | enum | `INGRESO` o `EGRESO` |
-| category | string | Categoría (ej. "Insumos", "Venta cosecha", "Servicios") |
-| amount | decimal | Monto en COP |
-| description | string | Descripción del movimiento |
-| account_id | int | FK al plan de cuentas |
+**Condición:** el volumen de registros debe acotarse al período pertinente para no exceder la ventana de contexto del modelo de lenguaje; si el historial es extenso, se aplica chunking para dividirlo en fragmentos procesables.
 
-**Condiciones:** Los datos deben cubrir al menos los últimos 6 meses. Todos los montos en COP. El agente nunca debe modificar estos datos — acceso estrictamente de solo lectura.
+#### E3 — Facturas de Venta y Comprobantes de Egreso
 
-#### Entrada 3: Facturación de Venta
+Documentos de las entidades FacturaDeVenta y ComprobanteDeEgreso que reflejan las transacciones comerciales recientes del productor, entregados en formato JSON. Deben contener concepto, valor, fecha e identificación del responsable. Son fundamentales para que el LLM calcule la carga tributaria real del período y detecte posibles exenciones o riesgos aplicables.
 
-| Atributo | Detalle |
-|---|---|
-| Fuente | Base de datos relacional FIN de EverGreen |
-| Acceso | Solo lectura vía herramienta `query_evergreen_finances` |
+**Condiciones:** las facturas en estado PENDIENTE y VENCIDA deben priorizarse al construir el contexto del prompt, ya que son determinantes para el análisis de liquidez; el sistema debe ser capaz de calcular el total de cuentas por cobrar sumando los montos pendientes; y al igual que E2, el volumen de documentos debe acotarse al período relevante para no exceder la ventana de contexto del modelo.
 
-| Campo | Tipo | Descripción |
-|---|---|---|
-| invoice_id | int | Identificador único de factura |
-| date_issued | date | Fecha de emisión |
-| date_due | date | Fecha de vencimiento |
-| client_name | string | Nombre del comprador |
-| total_amount | decimal | Monto total en COP |
-| vat_amount | decimal | Componente de IVA |
-| status | enum | `PAID`, `PENDING`, `OVERDUE` |
+#### E4 — Estado de Cuentas Contables
 
-**Condiciones:** Las facturas pendientes y vencidas son críticas para proyecciones de flujo de caja. El sistema debe poder calcular el total de cuentas por cobrar a partir de facturas pendientes.
+Saldos actuales de las cuentas clasificadas como Activos, Pasivos, Patrimonio, Ingresos, Costos y Gastos, extraídos del módulo FIN en el momento de la consulta.
 
-#### Entrada 4: Cuentas por Pagar
+**Condición:** deben estar actualizados al cierre del último período contable registrado en el sistema para garantizar que el razonamiento del LLM refleje la situación financiera real y no datos desactualizados.
 
-| Atributo | Detalle |
-|---|---|
-| Fuente | Base de datos relacional FIN de EverGreen |
-| Acceso | Solo lectura vía herramienta `query_evergreen_finances` |
+#### Nota sobre separación en el prompt
 
-| Campo | Tipo | Descripción |
-|---|---|---|
-| payable_id | int | Identificador único |
-| supplier_name | string | Nombre del proveedor (ej. "Semillas del Valle") |
-| amount | decimal | Monto adeudado en COP |
-| due_date | date | Fecha límite de pago |
-| category | string | Tipo de gasto (ej. "Semillas", "Abono", "Combustible") |
-| status | enum | `PENDING`, `PAID`, `OVERDUE` |
-
-**Condiciones:** Las cuentas por pagar pendientes son esenciales para cálculos de liquidez. El sistema debe señalar cuentas vencidas en diagnósticos financieros.
-
-#### Entrada 5: Inventario de Activos Fijos
-
-| Atributo | Detalle |
-|---|---|
-| Fuente | Base de datos relacional FIN de EverGreen |
-| Acceso | Solo lectura vía herramienta `query_evergreen_finances` |
-
-| Campo | Tipo | Descripción |
-|---|---|---|
-| asset_id | int | Identificador único |
-| name | string | Nombre del activo (ej. "Tractor John Deere 5075") |
-| category | enum | `MAQUINARIA`, `TERRENO`, `VEHICULO`, `EQUIPO` |
-| purchase_date | date | Fecha de adquisición |
-| purchase_value | decimal | Costo original en COP |
-| current_value | decimal | Valor depreciado en COP |
-| depreciation_rate | decimal | Porcentaje de depreciación anual |
-
-**Condiciones:** El valor actual debe calcularse con depreciación en línea recta. Los datos de activos son necesarios para el análisis de viabilidad de inversión (US-03).
+Las entradas E2, E3 y E4 se inyectan en el prompt aumentado delimitadas mediante marcadores estructurales (`'''...'''` o `{...}`) para que el modelo de lenguaje distinga claramente qué es una instrucción del sistema y qué son datos del usuario, evitando confusiones en el razonamiento.
 
 ---
 
 ### 3.3 Definición de Salidas
 
-Las salidas son las respuestas generadas por el sistema. Cada tipo de salida corresponde a una o más historias de usuario.
+Las salidas de FIN-Advisor son generadas por el LLM a partir del prompt aumentado —que combina la consulta del usuario, los datos transaccionales del módulo FIN y los fragmentos relevantes recuperados de la base de conocimiento— y se clasifican según su naturaleza y destinatario.
 
-#### Salida 1: Reporte de Diagnóstico Financiero
+#### S1 — Diagnóstico de Flujo de Caja
 
-| Atributo | Detalle |
-|---|---|
-| Disparado por | US-02 (Diagnóstico de Flujo de Caja), US-06 (Optimización de Gastos) |
-| Formato | Lenguaje natural estructurado en la interfaz de chat |
+Texto explicativo en lenguaje natural que presenta el panorama financiero actual del productor, identificando los principales factores que explican su situación, comparando con el período anterior cuando haya datos disponibles, e incluyendo 2 o 3 recomendaciones accionables. Formato: texto estructurado presentado en la interfaz de usuario.
 
-**Estructura:**
-```
-1. Resumen: Panorama en una oración de la situación financiera
-2. Hallazgos Clave: Top 3 factores que explican el estado actual
-   - Cada hallazgo incluye: categoría, monto y explicación
-3. Comparación: Período actual vs. período anterior (si hay datos)
-4. Recomendaciones: 2-3 sugerencias accionables
-5. Disclaimer: "Este análisis se basa en datos registrados. Consulte un profesional para decisiones formales."
-```
+**Condiciones:** debe incluir cifras monetarias reales del productor (no genéricas), explicar causas y no solo listar números, tener una extensión máxima de 400 palabras, y siempre incluir un disclaimer indicando que el análisis se basa en los datos registrados y que se recomienda validación con un profesional contable.
 
-**Condiciones:** Debe incluir cifras monetarias reales del usuario. Debe explicar causas, no solo listar números. Máximo 400 palabras. Siempre incluir disclaimer.
+#### S2 — Recomendación de Viabilidad de Inversión
 
-#### Salida 2: Calendario Tributario Personalizado
+Evaluación estructurada que determina si el productor puede adquirir un activo fijo en el momento de la consulta, considerando su liquidez actual, cuentas por cobrar y por pagar pendientes, y los beneficios tributarios aplicables. Incluye el costo efectivo después de deducciones, el saldo disponible estimado para inversión y un veredicto explícito (VIABLE / NO VIABLE AHORA / VIABLE EN X SEMANAS). Formato: texto estructurado presentado en la interfaz de usuario.
 
-| Atributo | Detalle |
-|---|---|
-| Disparado por | US-04 (Calendario Tributario Personalizado) |
-| Formato | Lista cronológica en la interfaz de chat |
+**Condiciones:** debe referenciar los artículos tributarios específicos que fundamentan los beneficios calculados, mostrar el razonamiento del cálculo de forma transparente, y si la inversión no es viable en el momento, sugerir la fecha viable más temprana con base en las proyecciones de flujo de caja.
 
-**Estructura:**
-```
-Próximas Obligaciones Tributarias (próximos 3 meses):
+#### S3 — Explicación de Beneficio Tributario
 
-1. [FECHA] — [NOMBRE DE OBLIGACIÓN]
-   Monto estimado: $X.XXX.XXX COP
-   ⚠️ Advertencia: El saldo proyectado en esta fecha puede ser insuficiente
+Respuesta explicativa que detalla un beneficio fiscal aplicable al productor, incluyendo su base legal (número de artículo del Estatuto Tributario o resolución DIAN), las condiciones que el productor debe cumplir para acceder a él, el impacto estimado en términos monetarios cuando sea calculable, y los próximos pasos sugeridos. Formato: texto en la interfaz de usuario.
 
-2. [FECHA] — [NOMBRE DE OBLIGACIÓN]
-   Monto estimado: $X.XXX.XXX COP
-   ✅ El saldo proyectado es suficiente
+**Condición:** siempre debe citar el número de artículo específico y explicar las condiciones en lenguaje llano, accesible para un administrador de finca sin formación contable.
+
+#### S4 — Alerta Tributaria hacia el Módulo de Mensajería (JSON)
+
+Cuando el LLM identifica en los datos del productor una situación de riesgo financiero o tributario urgente —como el vencimiento próximo de una obligación o un desequilibrio crítico de liquidez— genera una alerta en formato JSON estructurado para ser consumida directamente por el módulo de Mensajería de Evergreen, el cual la envía al productor vía WhatsApp, SMS o correo electrónico.
+
+**Ejemplo de estructura:**
+```json
+{
+  "tipo": "alerta_tributaria",
+  "urgencia": "alta",
+  "mensaje": "Vence declaración de IVA en 5 días. Revise su módulo de Finanzas.",
+  "canal": "whatsapp"
+}
 ```
 
-**Condiciones:** Fechas en orden cronológico. Cada entrada incluye nombre de obligación y monto estimado. Advertencias de liquidez basadas en saldo proyectado. Debe especificar que solo cubre obligaciones nacionales (DIAN).
+**Condición:** esta salida solo se genera cuando la situación detectada supera un umbral de urgencia definido en el prompt del sistema; no se disparan notificaciones por situaciones de bajo riesgo para evitar saturar al productor con alertas irrelevantes.
 
-#### Salida 3: Recomendación de Viabilidad de Inversión
+#### Reglas de Calidad aplicables a TODAS las salidas
 
-| Atributo | Detalle |
-|---|---|
-| Disparado por | US-03 (Viabilidad de Compra de Activo Fijo) |
-| Formato | Recomendación estructurada en la interfaz de chat |
-
-**Estructura:**
-```
-1. Activo: [Nombre y costo estimado]
-2. Beneficios Tributarios: [Deducciones/descuentos aplicables con referencias a artículos]
-3. Costo Efectivo: [Costo después de beneficios tributarios]
-4. Snapshot Financiero:
-   - Saldo actual: $X
-   - Cuentas por cobrar pendientes (próximos 30 días): $X
-   - Cuentas por pagar pendientes (próximos 30 días): $X
-   - Disponible para inversión: $X
-5. Veredicto: [VIABLE / NO VIABLE AHORA / VIABLE EN X SEMANAS]
-6. Razonamiento: [Explicación del cálculo]
-7. Disclaimer
-```
-
-**Condiciones:** Debe mostrar el cálculo completo de forma transparente. Debe referenciar artículos tributarios específicos si aplican beneficios. Si no es viable ahora, debe sugerir la fecha viable más temprana. Siempre incluir supuestos usados en la proyección.
-
-#### Salida 4: Explicación de Beneficio Tributario
-
-| Atributo | Detalle |
-|---|---|
-| Disparado por | US-01 (Consulta de Beneficio Tributario) |
-| Formato | Texto explicativo en la interfaz de chat |
-
-**Estructura:**
-```
-1. Beneficio Aplicable: [Nombre y resumen]
-2. Base Legal: [Número de artículo y cita breve]
-3. Condiciones: [Requisitos que el productor debe cumplir]
-4. Impacto Estimado: [Cuánto podría ahorrar, si es calculable]
-5. Recomendación: [Próximos pasos para aprovechar el beneficio]
-6. Disclaimer
-```
-
-**Condiciones:** Siempre citar el número de artículo específico. Explicar condiciones en lenguaje llano. Incluir disclaimer sobre validación profesional.
-
-#### Salida 5: Explicación de Concepto Contable
-
-| Atributo | Detalle |
-|---|---|
-| Disparado por | US-05 (Explicación de Concepto Contable) |
-| Formato | Texto explicativo corto en la interfaz de chat |
-
-**Condiciones:** Máximo 200 palabras. Sin jerga no explicada. Incluye ejemplo concreto (de datos del usuario si están disponibles, de lo contrario ejemplo agrícola genérico). No requiere disclaimer (educativo, no asesoría).
-
-#### Reglas de Calidad de Salidas (Aplican a TODAS las salidas)
-
-1. **Fundamentación:** Cada afirmación factual debe ser rastreable a la base de conocimiento o a los datos financieros del usuario. Sin cifras alucinadas.
-2. **Transparencia:** Cuando el sistema no está seguro o carece de datos, debe decirlo explícitamente.
-3. **Consistencia:** Las cifras monetarias deben usar COP con separadores de miles (ej. $12.500.000 COP).
-4. **Tono:** Técnico pero accesible — escrito para un administrador de finca, no para un contador.
-5. **Idioma:** Todas las respuestas en español.
-6. **Disclaimers:** Cualquier salida que pueda interpretarse como asesoría financiera o legal debe incluir un disclaimer.
+1. **Fundamentación:** Toda afirmación factual debe ser trazable a la base de conocimiento o a los datos financieros del usuario; no se admiten cifras generadas sin respaldo.
+2. **Transparencia:** Cuando el sistema carece de datos suficientes para responder, debe declararlo explícitamente en lugar de inferir.
+3. **Consistencia:** Las cifras monetarias usan siempre COP con separadores de miles (ej. $12.500.000 COP).
+4. **Tono:** Técnico pero accesible, orientado a un administrador de finca, no a un contador especializado.
+5. **Disclaimers:** Toda salida que pueda interpretarse como asesoría financiera o legal debe incluir un disclaimer de validación profesional.
 
 ---
 
 ## 4. Propuesta de Arquitectura de la Solución
 
-### 4.1 Visión General
+### 4.1 Nivel 1 — Contexto del Sistema FIN-Advisor
 
 FIN-Advisor sigue una **arquitectura por capas** con cuatro capas distintas, cada una con una responsabilidad única. Todos los componentes se ejecutan localmente — sin dependencias de nube.
 
@@ -481,7 +313,7 @@ FIN-Advisor sigue una **arquitectura por capas** con cuatro capas distintas, cad
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 4.2 Descripción de Capas
+### 4.2 Nivel 2 — Contenedores FIN-Advisor
 
 **Capa de Presentación (React.js):** Interfaz de chat donde el usuario ingresa consultas y recibe respuestas. Incluye el dashboard FIN existente y un renderizador de respuestas que formatea tablas, advertencias y calendarios. Comunicación con el backend vía REST API (`POST /api/v1/chat`).
 
@@ -493,7 +325,7 @@ FIN-Advisor sigue una **arquitectura por capas** con cuatro capas distintas, cad
 
 **Capa de Inferencia (Ollama):** Ejecuta el LLM localmente. Modelo primario: Llama 3 (8B). Modelo de respaldo: Mistral (7B) para máquinas con menos RAM. Expone una API REST en localhost:11434 que LangChain consume nativamente.
 
-### 4.3 Diagrama de Flujo de Datos
+### 4.3 Nivel 3 — Componentes FastAPI Backend
 
 ```
                     ┌──────────┐
@@ -540,7 +372,7 @@ FIN-Advisor sigue una **arquitectura por capas** con cuatro capas distintas, cad
                     └──────────┘ JSON  └──────────┘
 ```
 
-### 4.4 Definición del Agente y Herramientas
+### 4.4 Nivel 4 — Flujo Dinámico
 
 El agente es de tipo **ReAct (Reasoning and Acting)**, implementado con `LangChain create_react_agent`. Opera en un ciclo iterativo `THOUGHT → ACTION → OBSERVATION → ... → FINAL ANSWER`, decidiendo dinámicamente el orden y número de invocaciones de herramientas según la consulta.
 
@@ -636,25 +468,14 @@ Todos los servicios corren en localhost. No se requiere Docker para el MVP.
 
 ---
 
-## 5. Riesgos y Mitigaciones
+## 5. Conclusiones del Caso de Aplicación
 
-| Riesgo | Probabilidad | Impacto | Estrategia de Mitigación |
-|---|---|---|---|
-| Alucinaciones del LLM en cálculos tributarios | Alta | Crítico | Usar herramientas de cálculo dedicadas para toda la matemática. System prompt prohíbe explícitamente inventar números |
-| Baja calidad de recuperación (trozos incorrectos retornados) | Media | Alto | Estrategia de chunking cuidadosa, etiquetado de metadatos y consultas de prueba durante desarrollo |
-| Rendimiento de Ollama demasiado lento en hardware del equipo | Media | Medio | Probar temprano en la máquina más débil. Usar Mistral 7B si Llama 3 es muy lento |
-| Incompatibilidades de versión de LangChain | Media | Medio | Fijar todas las versiones de dependencias en requirements.txt. Usar entorno virtual |
-| Scope creep (el equipo quiere agregar más features) | Alta | Medio | Adherencia estricta a las 6 historias de usuario definidas |
+**Frente funcional:** La funcionalidad FIN-Advisor demuestra que el patrón RAG aporta mayor valor en dominios donde coexisten datos privados y cambiantes del usuario —como las transacciones contables del módulo FIN— con conocimiento público especializado y relativamente estable, como la normativa tributaria colombiana. Ninguna de las dos fuentes por sí sola es suficiente para generar asesoría financiera de valor real: sin los datos del productor la respuesta es genérica; sin la normativa, carece de fundamento legal.
 
----
+**Frente de datos:** La distinción entre base de conocimiento, entradas y salidas no es un ejercicio académico sino una decisión de diseño con consecuencias técnicas directas. Clasificar mal un elemento —por ejemplo, tratar la estructura de centros de costos como una entrada dinámica cuando es una configuración estable— aumenta innecesariamente la carga de tokens en cada consulta y puede comprometer el rendimiento del sistema o superar la ventana de contexto del modelo.
 
-## 6. Restricciones del Proyecto
+**Frente de arquitectura:** La integración del FIN-Advisor con el módulo de Mensajería de Evergreen mediante salidas en formato JSON estructurado evidencia que en sistemas RAG de uso empresarial las salidas no son únicamente respuestas textuales para humanos, sino que pueden convertirse en eventos que disparan acciones en otros componentes del sistema. Esto exige que el formato de las salidas se diseñe desde la etapa de análisis y no como una decisión de implementación posterior.
 
-| Restricción | Detalle |
-|---|---|
-| Presupuesto | $0 USD — proyecto universitario, todas las herramientas deben ser gratuitas u open-source |
-| Despliegue | Totalmente local — sin servicios de nube, sin API keys pagadas |
-| Datos | Mezcla de documentos legales públicos y datos financieros sintéticos/mock |
-| Timeline | Alcance de un semestre académico |
-| Equipo | Estudiantes universitarios (primer proyecto mock) |
-| Hardware | Mínimo 8GB RAM, recomendado 16GB. GPU opcional pero mejora velocidad |
+**Frente técnico:** RAG resulta más adecuado que el fine-tuning para este caso porque la normativa tributaria colombiana cambia con frecuencia; actualizar la base de conocimiento con nuevos documentos es significativamente más eficiente que reentrenar el modelo. Esta flexibilidad es una ventaja estructural del patrón RAG en contextos regulatorios donde la información evoluciona continuamente.
+
+**Consideraciones personales:** Este ejercicio permitió comprender que diseñar una funcionalidad RAG bien fundamentada requiere entender el negocio con la misma profundidad que la tecnología. La claridad en los elementos de datos —qué entra, en qué formato, con qué condiciones, y qué produce el sistema para quién— es lo que determina si el LLM puede razonar correctamente o si, independientemente de la calidad del modelo, generará respuestas poco útiles o incluso riesgosas en un contexto legal como el tributario.

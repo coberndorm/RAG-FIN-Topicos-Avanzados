@@ -120,7 +120,7 @@ Referencia completa en [`.env.example`](.env.example):
 |----------|-------------------|-------------|
 | `LLM_PROVIDER` | `huggingface` | Proveedor LLM: `gemini` (recomendado), `huggingface`, `chatgpt`, `groq` |
 | `LLM_API_KEY` | — | Clave de API del proveedor seleccionado (requerida) |
-| `LLM_MODEL_NAME` | Según proveedor | Identificador del modelo (ej: `gemini-1.5-flash`, `gpt-4o-mini`, `llama-3.3-70b-versatile`) |
+| `LLM_MODEL_NAME` | Según proveedor | Identificador del modelo (ej: `gemini-2.5-flash`, `gpt-4o-mini`, `llama-3.3-70b-versatile`) |
 | `EMBEDDING_MODEL_NAME` | `intfloat/multilingual-e5-small` | Modelo de embeddings para ETL y recuperación |
 | `SIMILARITY_THRESHOLD` | `0.35` | Umbral mínimo de similitud coseno para resultados |
 | `CHROMA_PERSIST_DIR` | `./chroma_data` | Directorio de persistencia de ChromaDB |
@@ -130,7 +130,7 @@ Referencia completa en [`.env.example`](.env.example):
 
 | Proveedor | Modelo por defecto | Clave gratuita |
 |-----------|--------------------|----------------|
-| Gemini (recomendado) | `gemini-1.5-flash` | [makersuite.google.com](https://makersuite.google.com) |
+| Gemini (recomendado) | `gemini-2.5-flash` | [ai.google.dev](https://ai.google.dev) |
 | HuggingFace | `meta-llama/Llama-3.1-70B-Instruct` | [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) |
 | ChatGPT | `gpt-4o-mini` | [platform.openai.com](https://platform.openai.com/api-keys) |
 | Groq | `llama-3.3-70b-versatile` | [console.groq.com](https://console.groq.com) |

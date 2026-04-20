@@ -29,7 +29,7 @@ agent/
 Implementa una clase base abstracta `ProveedorLLM` con proveedores concretos:
 
 - **HuggingFaceProvider** — Usa `HuggingFaceEndpoint` (modelo por defecto: `meta-llama/Llama-3.1-70B-Instruct`)
-- **GeminiProvider** — Usa `ChatGoogleGenerativeAI` (modelo por defecto: `gemini-1.5-flash`)
+- **GeminiProvider** — Usa `ChatGoogleGenerativeAI` (modelo por defecto: `gemini-2.5-flash`)
 - **ChatGPTProvider** — Usa `ChatOpenAI` (modelo por defecto: `gpt-4o-mini`)
 - **GroqProvider** — Usa `ChatGroq` (modelo por defecto: `llama-3.3-70b-versatile`)
 

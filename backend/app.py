@@ -22,6 +22,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncGenerator
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import chromadb
 from fastapi import FastAPI
 

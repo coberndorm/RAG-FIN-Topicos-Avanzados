@@ -194,6 +194,18 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# Node
+node_modules/
+
+# ChromaDB
+chroma_data/
+
+# SQLite
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
 # Cursor
 #  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
 #  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data

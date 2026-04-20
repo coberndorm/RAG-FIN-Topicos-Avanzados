@@ -41,7 +41,7 @@ import os
 
 def create_gemini_llm(
     api_key: str | None = None,
-    model_name: str = "gemini-1.5-flash",
+    model_name: str = "gemini-2.5-flash",
     temperature: float = 0.3,
 ):
     """Create a Gemini LLM instance for LangChain.

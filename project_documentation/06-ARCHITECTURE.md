@@ -175,7 +175,7 @@ Response: { "response": "string", "sources": [...], "tools_used": [...] }
 | Attribute | Detail |
 |---|---|
 | Technology | API-based: Gemini (recommended), HuggingFace, OpenAI, Groq |
-| Primary Model | `gemini-1.5-flash` (free tier: 1,500 req/day) |
+| Primary Model | `gemini-2.5-flash` (free tier: 250 req/day) |
 | Alternatives | `Llama-3.1-70B-Instruct` (HuggingFace), `gpt-4o-mini` (OpenAI), `llama-3.3-70b-versatile` (Groq) |
 | API | Provider-specific REST APIs, abstracted via LangChain + Strategy pattern |
 | Configuration | `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL_NAME` environment variables |

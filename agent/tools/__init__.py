@@ -63,7 +63,7 @@ def get_tax_knowledge(query: str) -> str:
 @tool
 def query_evergreen_finances(
     query_type: str,
-    period_days: int | None = None,
+    period_days: str | int | None = None,
 ) -> str:
     """Consulta los datos financieros del productor en la base de datos EverGreen FIN.
 
@@ -81,6 +81,13 @@ def query_evergreen_finances(
     Returns:
         Resultados de la consulta en formato JSON con valores en COP.
     """
+    # Coerce period_days to int (Groq sometimes sends it as a string)
+    if period_days is not None:
+        try:
+            period_days = int(period_days)
+        except (ValueError, TypeError):
+            period_days = None
+
     resultado = _query_evergreen_finances(
         query_type=query_type,
         period_days=period_days,
@@ -90,8 +97,8 @@ def query_evergreen_finances(
 
 @tool
 def calculate_vat_discount(
-    purchase_price: float,
-    vat_rate: float = 0.19,
+    purchase_price: float | str,
+    vat_rate: float | str = 0.19,
 ) -> str:
     """Calcula el descuento de IVA sobre una compra de bien de capital.
 
@@ -108,17 +115,17 @@ def calculate_vat_discount(
         efectivo y explicación en español.
     """
     resultado = _calculate_vat_discount(
-        purchase_price=purchase_price,
-        vat_rate=vat_rate,
+        purchase_price=float(purchase_price),
+        vat_rate=float(vat_rate),
     )
     return json.dumps(resultado, ensure_ascii=False, indent=2)
 
 
 @tool
 def calculate_net_liquidity(
-    balance: float,
-    receivables: float,
-    payables: float,
+    balance: float | str,
+    receivables: float | str,
+    payables: float | str,
 ) -> str:
     """Calcula la liquidez neta actual y proyectada del productor.
 
@@ -136,20 +143,20 @@ def calculate_net_liquidity(
         proyectada y explicación en español.
     """
     resultado = _calculate_net_liquidity(
-        balance=balance,
-        receivables=receivables,
-        payables=payables,
+        balance=float(balance),
+        receivables=float(receivables),
+        payables=float(payables),
     )
     return json.dumps(resultado, ensure_ascii=False, indent=2)
 
 
 @tool
 def assess_investment_viability(
-    balance: float,
-    receivables: float,
-    payables: float,
-    purchase_cost: float,
-    tax_benefit: float = 0,
+    balance: float | str,
+    receivables: float | str,
+    payables: float | str,
+    purchase_cost: float | str,
+    tax_benefit: float | str = 0,
 ) -> str:
     """Evalúa si una inversión en activo fijo es viable financieramente.
 
@@ -169,20 +176,20 @@ def assess_investment_viability(
         efectivos, fondos disponibles y explicación en español.
     """
     resultado = _assess_investment_viability(
-        balance=balance,
-        receivables=receivables,
-        payables=payables,
-        purchase_cost=purchase_cost,
-        tax_benefit=tax_benefit,
+        balance=float(balance),
+        receivables=float(receivables),
+        payables=float(payables),
+        purchase_cost=float(purchase_cost),
+        tax_benefit=float(tax_benefit),
     )
     return json.dumps(resultado, ensure_ascii=False, indent=2)
 
 
 @tool
 def project_tax_liability(
-    gross_income: float,
-    deductions: float,
-    tax_rate: float,
+    gross_income: float | str,
+    deductions: float | str,
+    tax_rate: float | str,
 ) -> str:
     """Proyecta la obligación tributaria del productor agrícola.
 
@@ -199,18 +206,18 @@ def project_tax_liability(
         impuesto estimado y explicación en español.
     """
     resultado = _project_tax_liability(
-        gross_income=gross_income,
-        deductions=deductions,
-        tax_rate=tax_rate,
+        gross_income=float(gross_income),
+        deductions=float(deductions),
+        tax_rate=float(tax_rate),
     )
     return json.dumps(resultado, ensure_ascii=False, indent=2)
 
 
 @tool
 def calculate_depreciation(
-    purchase_value: float,
-    useful_life_years: int,
-    years_elapsed: float,
+    purchase_value: float | str,
+    useful_life_years: int | str,
+    years_elapsed: float | str,
 ) -> str:
     """Calcula la depreciación de un activo fijo por línea recta.
 
@@ -227,9 +234,9 @@ def calculate_depreciation(
         acumulada, valor actual y explicación en español.
     """
     resultado = _calculate_depreciation(
-        purchase_value=purchase_value,
-        useful_life_years=useful_life_years,
-        years_elapsed=years_elapsed,
+        purchase_value=float(purchase_value),
+        useful_life_years=int(useful_life_years),
+        years_elapsed=float(years_elapsed),
     )
     return json.dumps(resultado, ensure_ascii=False, indent=2)
 

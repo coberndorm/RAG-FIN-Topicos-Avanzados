@@ -35,7 +35,7 @@ TEMPERATURA_DEFAULT: float = 0.3
 """Temperatura por defecto para todos los proveedores."""
 
 MODELOS_DEFAULT: dict[str, str] = {
-    "gemini": "gemini-1.5-flash",
+    "gemini": "gemini-2.5-flash",
     "chatgpt": "gpt-4o-mini",
     "groq": "llama-3.3-70b-versatile",
 }
@@ -98,7 +98,7 @@ class HuggingFaceProvider(ProveedorLLM):
                 usa el modelo por defecto.
         """
         self.api_key = api_key
-        self.nombre_modelo = nombre_modelo or MODELOS_DEFAULT["gemini-1.5-flash"]
+        self.nombre_modelo = nombre_modelo or MODELOS_DEFAULT["gemini"]
 
     def obtener_llm(self) -> BaseLanguageModel:
         """Crea una instancia de HuggingFaceEndpoint.

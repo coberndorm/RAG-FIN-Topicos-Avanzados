@@ -301,8 +301,8 @@ classDiagram
 
 | Provider | Model | Free Tier | Paid Cost | Spanish | Context Window | ReAct Support | Recommendation |
 |---|---|---|---|---|---|---|---|
-| **Gemini (Google)** | `gemini-1.5-flash` | 1,500 req/day | $0.35/1M input, $1.05/1M output | Excellent (LATAM-trained) | 1M tokens | Native function calling | **TOP PICK** for university |
-| **Gemini Pro** | `gemini-1.5-pro` | 50 req/day | $3.50/1M input, $10.50/1M output | Excellent | 1M tokens | Native function calling | For complex reasoning |
+| **Gemini (Google)** | `gemini-2.5-flash` | 250 req/day | $0.15/1M input, $0.60/1M output | Excellent (LATAM-trained) | 1M tokens | Native function calling | **TOP PICK** for university |
+| **Gemini Pro** | `gemini-2.5-pro` | 5 req/day | $1.25/1M input, $10.00/1M output | Excellent | 1M tokens | Native function calling | For complex reasoning |
 | **HuggingFace** | `meta-llama/Llama-3.1-70B-Instruct` | Rate-limited | Pay-as-you-go | Good | 8K tokens | Via LangChain | Free default option |
 | **OpenAI** | `gpt-4o-mini` | $5-18 student credit | $0.15/1M input, $0.60/1M output | Best-in-class | 128K tokens | Industry standard | If budget allows |
 | **Groq** | `llama-3.3-70b-versatile` | ~14,000 req/day | Very affordable | Good (Llama 3.3) | 128K tokens | Via LangChain | Bonus: extremely fast (≤400ms) |
@@ -315,7 +315,7 @@ classDiagram
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash",
+    model="gemini-2.5-flash",
     temperature=0.3,  # Lower = more deterministic for financial advice
     google_api_key="YOUR_GEMINI_API_KEY"  # Free at makersuite.google.com
 )
@@ -585,7 +585,7 @@ class DepreciationOutput(BaseModel):
 |---|---|---|---|
 | `LLM_PROVIDER` | `huggingface` | No | LLM provider: `gemini` (recommended), `huggingface`, `chatgpt`, `groq` |
 | `LLM_API_KEY` | — | Yes (all providers) | API key for the selected provider |
-| `LLM_MODEL_NAME` | Provider-specific | No | Model identifier (gemini-1.5-flash, meta-llama/Llama-3.1-70B-Instruct, gpt-4o-mini, llama-3.3-70b-versatile) |
+| `LLM_MODEL_NAME` | Provider-specific | No | Model identifier (gemini-2.5-flash, meta-llama/Llama-3.1-70B-Instruct, gpt-4o-mini, llama-3.3-70b-versatile) |
 | `EMBEDDING_MODEL_NAME` | `intfloat/multilingual-e5-small` | No | Embedding model for ETL and retrieval |
 | `SIMILARITY_THRESHOLD` | `0.35` | No | Minimum cosine similarity for knowledge retrieval |
 | `CHROMA_PERSIST_DIR` | `./chroma_data` | No | ChromaDB persistence directory |

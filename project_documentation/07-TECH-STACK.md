@@ -10,7 +10,7 @@
 | Backend | FastAPI | 0.100+ | MIT | Free |
 | Agent Framework | LangChain | 0.2+ | MIT | Free |
 | Local LLM Runtime | API-based (Gemini/HuggingFace/OpenAI/Groq) | Latest | Various | Free tiers available |
-| LLM Model | gemini-1.5-flash (recommended) | Latest | Google ToS | Free tier: 1,500 req/day |
+| LLM Model | gemini-2.5-flash (recommended) | Latest | Google ToS | Free tier: 250 req/day |
 | Vector Database | ChromaDB | 0.4+ | Apache 2.0 | Free |
 | Embedding Model | intfloat/multilingual-e5-small | - | Apache 2.0 | Free |
 | Relational Database | SQLite | 3.x | Public Domain | Free |
@@ -92,7 +92,7 @@
 
 | Provider | Model | Free Tier | Paid Cost (per 1M tokens) | Spanish Quality | Context Window |
 |---|---|---|---|---|---|
-| **Gemini (recommended)** | `gemini-1.5-flash` | 1,500 req/day | $0.35 input / $1.05 output | Excellent | 1M tokens |
+| **Gemini (recommended)** | `gemini-2.5-flash` | 250 req/day | $0.15 input / $0.60 output | Excellent | 1M tokens |
 | **HuggingFace** | `Llama-3.1-70B-Instruct` | Rate-limited | Pay-as-you-go | Good | 8K tokens |
 | **OpenAI** | `gpt-4o-mini` | $5-18 student credit | $0.15 input / $0.60 output | Best-in-class | 128K tokens |
 | **Groq** | `llama-3.3-70b-versatile` | ~14,000 req/day | Very affordable | Good | 128K tokens |

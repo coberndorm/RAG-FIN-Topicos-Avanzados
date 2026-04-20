@@ -1,0 +1,12 @@
+{
+  "name": "Post Task Tests",
+  "version": "1.0.0",
+  "description": "Ejecuta la suite de tests con pytest después de completar cada tarea del spec para verificar que nada se haya roto.",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "cd RAG-FIN-Topicos-Avanzados && python -m pytest tests/ -v --tb=short 2>&1 || true"
+  }
+}

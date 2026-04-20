@@ -1,0 +1,13 @@
+{
+  "name": "Python Create Check",
+  "version": "1.0.0",
+  "description": "Verifica estructura de archivos Python nuevos: docstring de módulo en español, convenciones de clases/herencia y stubs de tests.",
+  "when": {
+    "type": "fileCreated",
+    "patterns": ["RAG-FIN-Topicos-Avanzados/**/*.py"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Revisa el nuevo archivo Python creado y verifica: (1) que incluya un docstring a nivel de módulo en español describiendo su propósito, (2) que siga las convenciones de clases y herencia del proyecto (Strategy pattern para proveedores, BaseModel para modelos Pydantic), (3) que tenga type hints en todas las funciones. Sugiere si se necesita crear un archivo de test correspondiente en tests/."
+  }
+}

@@ -1,0 +1,377 @@
+/* ==========================================================================
+   FIN-Advisor — Estilos principales
+   Tema verde/agrícola, diseño limpio y centrado
+   ========================================================================== */
+
+/* Variables de color */
+:root {
+  --fin-green-dark: #2e7d32;
+  --fin-green-main: #43a047;
+  --fin-green-light: #a5d6a7;
+  --fin-green-bg: #e8f5e9;
+  --fin-white: #ffffff;
+  --fin-gray-light: #f5f5f5;
+  --fin-gray: #9e9e9e;
+  --fin-gray-dark: #424242;
+  --fin-text: #212121;
+  --fin-error: #d32f2f;
+  --fin-warning: #f57c00;
+  --fin-user-bubble: #e8f5e9;
+  --fin-bot-bubble: #ffffff;
+  --fin-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--fin-gray-light);
+  color: var(--fin-text);
+  line-height: 1.5;
+}
+
+/* Contenedor principal de la app */
+.fin-advisor-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: var(--fin-white);
+  box-shadow: var(--fin-shadow);
+  position: relative;
+}
+
+/* Logo */
+.fin-logo {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+.fin-logo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--fin-green-dark);
+  color: var(--fin-white);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 1px;
+  box-shadow: var(--fin-shadow);
+}
+
+/* Saludo centrado */
+.fin-greeting {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.fin-greeting-line1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--fin-green-dark);
+  margin-bottom: 8px;
+}
+
+.fin-greeting-line2 {
+  font-size: 1.15rem;
+  color: var(--fin-gray-dark);
+  font-weight: 400;
+}
+
+/* Chips de sugerencia */
+.fin-suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 12px 20px 20px;
+}
+
+.fin-chip {
+  background-color: var(--fin-green-bg);
+  color: var(--fin-green-dark);
+  border: 1.5px solid var(--fin-green-light);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.fin-chip:hover {
+  background-color: var(--fin-green-light);
+  border-color: var(--fin-green-main);
+  transform: translateY(-1px);
+}
+
+.fin-chip:active {
+  transform: translateY(0);
+}
+
+/* Contenedor del chat */
+.fin-chat-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Hilo de mensajes */
+.fin-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fin-message {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+.fin-message-user {
+  align-self: flex-end;
+  background-color: var(--fin-user-bubble);
+  color: var(--fin-text);
+  border-bottom-right-radius: 4px;
+}
+
+.fin-message-bot {
+  align-self: flex-start;
+  background-color: var(--fin-bot-bubble);
+  border: 1px solid #e0e0e0;
+  border-bottom-left-radius: 4px;
+}
+
+/* Metadatos de respuesta (fuentes, herramientas) */
+.fin-response-sources {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.8rem;
+  color: var(--fin-gray);
+}
+
+.fin-response-sources summary {
+  cursor: pointer;
+  color: var(--fin-green-dark);
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.fin-source-item {
+  margin: 4px 0;
+  padding-left: 8px;
+}
+
+.fin-tools-used {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fin-tool-tag {
+  background-color: var(--fin-green-bg);
+  color: var(--fin-green-dark);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Indicador de carga */
+.fin-loading {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  color: var(--fin-gray);
+  font-size: 0.9rem;
+}
+
+.fin-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--fin-green-light);
+  border-top-color: var(--fin-green-dark);
+  border-radius: 50%;
+  animation: fin-spin 0.8s linear infinite;
+}
+
+@keyframes fin-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Área de entrada */
+.fin-input-area {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid #e0e0e0;
+  background-color: var(--fin-white);
+}
+
+.fin-input-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.fin-input-wrapper textarea {
+  width: 100%;
+  min-height: 44px;
+  max-height: 120px;
+  padding: 10px 14px;
+  border: 1.5px solid #ccc;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+  line-height: 1.4;
+}
+
+.fin-input-wrapper textarea:focus {
+  border-color: var(--fin-green-main);
+}
+
+.fin-char-counter {
+  font-size: 0.75rem;
+  text-align: right;
+  margin-top: 4px;
+  color: var(--fin-gray);
+}
+
+.fin-char-counter.warning {
+  color: var(--fin-warning);
+  font-weight: 600;
+}
+
+.fin-send-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--fin-green-main);
+  color: var(--fin-white);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.fin-send-btn:hover:not(:disabled) {
+  background-color: var(--fin-green-dark);
+}
+
+.fin-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Error y reintento */
+.fin-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: #ffebee;
+  border-radius: 12px;
+  align-self: center;
+  max-width: 90%;
+}
+
+.fin-error-text {
+  color: var(--fin-error);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.fin-retry-btn {
+  background-color: var(--fin-error);
+  color: var(--fin-white);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.fin-retry-btn:hover {
+  background-color: #b71c1c;
+}
+
+/* Markdown dentro de respuestas */
+.fin-message-bot p {
+  margin-bottom: 8px;
+}
+
+.fin-message-bot p:last-child {
+  margin-bottom: 0;
+}
+
+.fin-message-bot ul,
+.fin-message-bot ol {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.fin-message-bot code {
+  background-color: var(--fin-gray-light);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.88rem;
+}
+
+.fin-message-bot strong {
+  color: var(--fin-green-dark);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .fin-advisor-app {
+    max-width: 100%;
+    height: 100vh;
+    box-shadow: none;
+  }
+
+  .fin-suggestion-chips {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .fin-greeting-line1 {
+    font-size: 1.4rem;
+  }
+}

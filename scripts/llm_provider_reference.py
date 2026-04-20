@@ -159,16 +159,16 @@ def create_chatgpt_llm(
 # 4. Groq — Bonus option (extremely fast)
 # ---------------------------------------------------------------------------
 # Free tier: ~14,000 requests/day
-# Models: llama-3.1-70b-versatile, mixtral-8x7b-32768
+# Models: llama-3.3-70b-versatile, mixtral-8x7b-32768
 # Speed: ≤400ms responses (very fast)
-# Spanish: Llama 3.1 supports Spanish well; Mixtral is multilingual by design
+# Spanish: Llama 3.3 supports Spanish well; Mixtral is multilingual by design
 # Get API key at: https://groq.com
 #
 # pip install langchain-groq
 
 def create_groq_llm(
     api_key: str | None = None,
-    model_name: str = "llama-3.1-70b-versatile",
+    model_name: str = "llama-3.3-70b-versatile",
     temperature: float = 0.3,
 ):
     """Create a Groq LLM instance for LangChain.

@@ -1,0 +1,13 @@
+{
+  "name": "Knowledge Base Markdown Lint",
+  "version": "1.0.0",
+  "description": "Verifica formato de documentos Markdown en knowledge_base/ para compatibilidad con el chunking del ETL.",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["RAG-FIN-Topicos-Avanzados/knowledge_base/*.md"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Revisa el documento Markdown editado en knowledge_base/ y verifica: (1) que use encabezados ## y ### para secciones principales y subsecciones, (2) que los números de artículo del Estatuto Tributario estén preservados en el texto, (3) que el contenido esté en español, (4) que los párrafos no sean excesivamente largos (el chunker divide en ~800 caracteres), (5) que el formato sea compatible con los separadores del ETL: '\\n## ', '\\n### ', '\\n\\n', '\\n', ' '. Reporta problemas de formato que puedan afectar la calidad del chunking."
+  }
+}

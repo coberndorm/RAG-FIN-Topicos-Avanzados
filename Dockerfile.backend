@@ -1,0 +1,44 @@
+# ============================================================
+# Dockerfile — Backend FastAPI (FIN-Advisor)
+# ============================================================
+# Imagen base: Python 3.11-slim
+# Instala las dependencias de requirements.txt y ejecuta
+# uvicorn en el puerto 8000.
+#
+# Uso:
+#   docker build -f Dockerfile.backend -t fin-advisor-backend .
+# ============================================================
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Instalar dependencias del sistema necesarias para compilar paquetes Python
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copiar archivo de dependencias primero (aprovecha caché de Docker)
+COPY requirements.txt ./
+
+# Instalar dependencias de Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar el código fuente del proyecto
+COPY agent/ ./agent/
+COPY backend/ ./backend/
+COPY scripts/ ./scripts/
+COPY knowledge_base/ ./knowledge_base/
+
+# Copiar archivos de configuración
+COPY .env.example ./
+
+# Variables de entorno por defecto (pueden sobreescribirse en docker-compose)
+ENV LLM_PROVIDER=huggingface
+ENV CHROMA_PERSIST_DIR=/app/chroma_data
+ENV SQLITE_DB_PATH=/app/fin.db
+
+EXPOSE 8000
+
+# Ejecutar el servidor FastAPI con uvicorn
+CMD ["uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000"]

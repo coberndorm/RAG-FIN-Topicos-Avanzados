@@ -1,0 +1,13 @@
+{
+  "name": "Python Edit Lint",
+  "version": "1.0.0",
+  "description": "Verifica estándares de código Python al editar archivos .py: type hints, docstrings Google-style en español y formato PEP 8.",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["RAG-FIN-Topicos-Avanzados/**/*.py"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Revisa el archivo Python editado y verifica: (1) que todas las funciones y métodos tengan type hints en parámetros y valores de retorno, (2) que las funciones y clases públicas tengan docstrings Google-style en español, (3) que se sigan las convenciones PEP 8 (nombres snake_case para funciones/variables, PascalCase para clases, líneas ≤100 caracteres). Reporta cualquier incumplimiento encontrado con sugerencias de corrección."
+  }
+}

@@ -1,0 +1,46 @@
+# ============================================================
+# Docker Compose — FIN-Advisor (Frontend + Backend)
+# ============================================================
+# Orquesta los servicios del frontend React y el backend FastAPI.
+#
+# Uso:
+#   docker-compose up --build
+#
+# Requisitos previos:
+#   - Tener fin.db generado (ejecutar scripts/generate_mock_data.py)
+#   - Tener chroma_data/ poblado (ejecutar scripts/etl_ingest.py)
+#   - Configurar variables de entorno en un archivo .env
+# ============================================================
+
+services:
+  # --- Frontend React (nginx en puerto 3000) ---
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # --- Backend FastAPI (uvicorn en puerto 8000) ---
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - LLM_PROVIDER=${LLM_PROVIDER:-huggingface}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME:-}
+      - EMBEDDING_MODEL_NAME=${EMBEDDING_MODEL_NAME:-intfloat/multilingual-e5-small}
+      - SIMILARITY_THRESHOLD=${SIMILARITY_THRESHOLD:-0.35}
+      - CHROMA_PERSIST_DIR=/app/chroma_data
+      - SQLITE_DB_PATH=/app/fin.db
+    volumes:
+      # Montar la base de datos SQLite y los datos de ChromaDB
+      - ./fin.db:/app/fin.db:ro
+      - ./chroma_data:/app/chroma_data:ro
+    restart: unless-stopped

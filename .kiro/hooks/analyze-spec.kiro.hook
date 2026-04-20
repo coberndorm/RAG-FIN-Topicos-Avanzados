@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Analyze Spec",
+  "description": "Run a read-only cross-artifact consistency and quality analysis across requirements.md, design.md, and tasks.md. Identifies inconsistencies, duplications, ambiguities, coverage gaps, and underspecified items.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Activate the #spec-analyzer steering file and execute the full analysis workflow against the spec in .kiro/specs/fin-advisor-rag/. Follow every step in the steering file: initialize context, load artifacts, build semantic models, run all detection passes, assign severities, produce the analysis report table, coverage summary, metrics, next actions, and offer remediation. Do NOT modify any files — output the report in chat only."
+  }
+}

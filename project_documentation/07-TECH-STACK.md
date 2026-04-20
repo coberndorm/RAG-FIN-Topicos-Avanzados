@@ -95,7 +95,7 @@
 | **Gemini (recommended)** | `gemini-1.5-flash` | 1,500 req/day | $0.35 input / $1.05 output | Excellent | 1M tokens |
 | **HuggingFace** | `Llama-3.1-70B-Instruct` | Rate-limited | Pay-as-you-go | Good | 8K tokens |
 | **OpenAI** | `gpt-4o-mini` | $5-18 student credit | $0.15 input / $0.60 output | Best-in-class | 128K tokens |
-| **Groq** | `llama-3.1-70b-versatile` | ~14,000 req/day | Very affordable | Good | 128K tokens |
+| **Groq** | `llama-3.3-70b-versatile` | ~14,000 req/day | Very affordable | Good | 128K tokens |
 
 **LangChain packages required (install only the one you use):**
 - Gemini: `langchain-google-genai`

@@ -163,9 +163,18 @@ def _obtener_respuesta_final(mensajes: list[Any]) -> str:
     """
     for msg in reversed(mensajes):
         if isinstance(msg, AIMessage):
-            # Ignorar mensajes que solo contienen tool_calls sin texto
-            if msg.content and isinstance(msg.content, str) and msg.content.strip():
-                return msg.content
+            contenido = msg.content
+            # Gemini may return content as a list of dicts
+            if isinstance(contenido, list):
+                partes_texto = []
+                for parte in contenido:
+                    if isinstance(parte, dict) and parte.get("type") == "text":
+                        partes_texto.append(parte["text"])
+                    elif isinstance(parte, str):
+                        partes_texto.append(parte)
+                contenido = "\n".join(partes_texto)
+            if contenido and isinstance(contenido, str) and contenido.strip():
+                return contenido
     return "No se pudo generar una respuesta. Intenta de nuevo."
 
 
@@ -209,10 +218,29 @@ async def chat(request: ChatRequest, req: Request) -> ChatResponse:
     mensajes.append(("user", request.message))
 
     try:
-        resultado = agente.invoke(
-            {"messages": mensajes},
-            config=config_invocacion,
-        )
+        # Retry logic for intermittent Groq tool-calling format errors
+        max_retries = 2
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                resultado = agente.invoke(
+                    {"messages": mensajes},
+                    config=config_invocacion,
+                )
+                break
+            except Exception as e:
+                error_msg = str(e)
+                if "tool_use_failed" in error_msg or "Failed to call a function" in error_msg:
+                    last_error = e
+                    logger.warning(
+                        "Reintentando invocación del agente (intento %d/%d) "
+                        "por error de formato de herramienta.",
+                        attempt + 1, max_retries,
+                    )
+                    continue
+                raise
+        else:
+            raise last_error
 
         mensajes_resultado = resultado.get("messages", [])
 
